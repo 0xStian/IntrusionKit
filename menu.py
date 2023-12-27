@@ -60,7 +60,7 @@ app.grid_columnconfigure(0, weight=1)
 app.grid_rowconfigure(0, weight=0)
 
 # Loading and resizing logo in banner
-original_image = Image.open("Images\\Logo2.png")
+original_image = Image.open("Images\\Logo.png")
 resized_image = original_image.resize((300, 50), Image.Resampling.LANCZOS)
 logo_image = ImageTk.PhotoImage(resized_image)
 
