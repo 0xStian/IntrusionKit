@@ -6,4 +6,4 @@ TO DO:
 
  - ignore error "CTkLabel Warning: Given image is not CTkImage but <class 'PIL.ImageTk.PhotoImage'>. Image can not be scaled on HighDPI displays, use CTkImage instead."
 
- - add tools to different files and connect them
+ - control layout from different files not just menu.py
