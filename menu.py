@@ -5,6 +5,7 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 import threading
 
+
 # custom imports
 import exploitation.hashCracker as HashCracker
 import reconnaissance.subDirectoryFinder as SubDirFinder
@@ -276,7 +277,76 @@ def action_sub_domain_finder():
 
     
 def action_port_scanner():
-    print("port scanner")
+    clear_body()
+
+    #########################################################
+    def start_port_scanner():
+        ip_address = IPaddress_entry.get()
+        ports = ports_entry.get() if not all_ports_checkbox_var.get() else "All ports"
+        check_vulns = "Checking for vulnerabilities" if scan_for_vulnerability_var.get() else "Not checking for vulnerabilities"
+        print(f"Scanning IP: {ip_address}, Ports: {ports}, {check_vulns}")
+
+
+
+    #########################################################
+
+
+    # Configure the rows and columns
+    app.grid_rowconfigure(0, weight=0)
+    app.grid_rowconfigure(1, weight=1)
+    app.grid_rowconfigure(2, weight=0)  
+    app.grid_columnconfigure(0, weight=1)
+    app.grid_columnconfigure(1, weight=3)
+    app.grid_columnconfigure(2, weight=0)
+    
+    # Create left frame
+    left_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    left_frame.grid(row=1, column=0, padx=(10, 5), pady=10, sticky='nsew')
+    
+    # Create middle frame
+    middle_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    middle_frame.grid(row=1, column=1, padx=(5, 5), pady=10, sticky='nsew')
+    
+    
+    # right frame // can delete to create bigger text/result box
+    right_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    right_frame.grid(row=1, column=2, padx=(5, 10), pady=10, sticky='nsew')
+    
+    
+    # ipaddress label
+    IPaddress = ctk.CTkLabel(master=left_frame, text="IP Address:")
+    IPaddress.pack(padx=10, pady=(10, 0))
+    # ipaddress entryfield
+    IPaddress_entry = ctk.CTkEntry(master=left_frame, width=250)
+    IPaddress_entry.pack(padx=0, pady=5)
+    
+    # ports label
+    ports_label = ctk.CTkLabel(master=left_frame, text="Ports:")
+    ports_label.pack(padx=10, pady=(10, 0))
+    # ports entryfield
+    ports_entry = ctk.CTkEntry(master=left_frame, width=250)
+    ports_entry.pack(padx=10, pady=10)
+    
+
+    # Scan all ports checkbox
+    all_ports_checkbox_var = ctk.IntVar()  # Variable to hold the state of the check box
+    all_ports_checkbox = ctk.CTkCheckBox(master=left_frame, text="All ports", variable=all_ports_checkbox_var)
+    all_ports_checkbox.pack(pady=(10), padx=(20), anchor="w")
+
+    # Scan for vulnerabilities checkbox
+    scan_for_vulnerability_var = ctk.IntVar()  # Variable to hold the state of the check box
+    scan_for_vulnerability_checkbox = ctk.CTkCheckBox(master=left_frame, text="Check for Vulns", variable=scan_for_vulnerability_var)
+    scan_for_vulnerability_checkbox.pack(padx=(20), anchor="w")
+    
+    
+    open_ports_textbox = ctk.CTkTextbox(master=middle_frame)
+    open_ports_textbox.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.94, relheight=0.94)
+
+    # Generate button
+    scan_button = ctk.CTkButton(master=left_frame, text="Start Scanning", command=lambda: start_port_scanner())
+    scan_button.pack(padx=10, pady=(30,5))
+
+
     
     
 def action_reverse_shell():

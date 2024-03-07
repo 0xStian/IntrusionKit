@@ -1,4 +1,4 @@
 aiohttp==3.9.1
-customtkinter==5.2.1
-Pillow==10.1.0
+customtkinter==5.2.2
 Pillow==10.2.0
+python-nmap==0.7.1
