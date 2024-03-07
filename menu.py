@@ -8,6 +8,8 @@ import threading
 # custom imports
 import exploitation.hashCracker as HashCracker
 import reconnaissance.subDirectoryFinder as SubDirFinder
+import reconnaissance.subDomainFinder as SubDomainFinder
+import weaponization.custom_wordlist as CustomWordlist
 
 app = ctk.CTk()
 app.title('IntrusionKit')
@@ -173,8 +175,105 @@ def action_sub_directory_finder():
     
 
 def action_sub_domain_finder():
-    print("Sub domain finder")
+    clear_body()
     
+    ########################### Sub Domain Finder Functions #############################
+    
+    def update_gui_with_subdomain(subdomain_url):
+        app.after(0, lambda: found_domains_textbox.insert(tk.END, subdomain_url + "\n"))
+
+    
+    def startSubDomainFinder(domain, wordlist_path):
+        # set status to active
+        status_label.configure(text="Status: Active", fg_color="green")
+        # run sub domain finder
+        SubDomainFinder.start(domain_entry.get(), wordlist_entry.get(), update_gui_with_subdomain)
+        # set status to idle
+        status_label.configure(text="Status: Idle ", fg_color="grey")
+        
+    def add_to_summary():
+        result = found_domains_textbox.get("1.0", tk.END)
+        with open("Summary.txt", "a+") as f:
+            f.seek(0)
+            content = f.read()
+            if result not in content:
+                try:
+                    f.write(str(result))
+                except:
+                    f.write("Error writing subdomains to summary.")
+            else:
+                messagebox.showerror("ERROR","Subdomains are already in the Summary!")    
+    #################################################################################
+    
+    # Configure the rows and columns
+    app.grid_rowconfigure(0, weight=0)
+    app.grid_rowconfigure(1, weight=1)
+    app.grid_rowconfigure(2, weight=0)  
+    app.grid_columnconfigure(0, weight=1)
+    app.grid_columnconfigure(1, weight=300)
+    app.grid_columnconfigure(2, weight=0)
+    
+    # Create left frame
+    left_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    left_frame.grid(row=1, column=0, padx=(10, 5), pady=10, sticky='nsew')
+    
+    # Create middle frame
+    middle_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    middle_frame.grid(row=1, column=1, padx=(5, 5), pady=10, sticky='nsew')
+    
+    # Right frame // can delete to create bigger text/result box
+    right_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    right_frame.grid(row=1, column=2, padx=(5, 10), pady=10, sticky='nsew')
+    add_to_summary_button = ctk.CTkButton(
+        master=right_frame, 
+        text="Add Result to Summary", 
+        fg_color="darkgreen", 
+        hover_color="green", 
+        command=add_to_summary
+    )
+    add_to_summary_button.pack(padx=10, pady=20)
+    
+    # Domain label
+    domain_label = ctk.CTkLabel(master=left_frame, text="Domain: ")
+    domain_label.pack(padx=10, pady=(10, 0))
+    # Domain entry field
+    domain_entry = ctk.CTkEntry(master=left_frame)
+    domain_entry.pack(padx=10, pady=5)
+    # Example label for domain input
+    example_label = ctk.CTkLabel(master=left_frame, text="E.g., example.com (omit 'https://')", font=("Helvetica", 12))
+    example_label.pack(padx=10, pady=(0, 5))
+    
+    # Wordlist label
+    wordlist_label = ctk.CTkLabel(master=left_frame, text="Wordlist Path:")
+    wordlist_label.pack(padx=10, pady=(10, 0))
+    # Wordlist entry field
+    wordlist_entry = ctk.CTkEntry(master=left_frame)
+    wordlist_entry.pack(padx=10, pady=10)
+    # Wordlist browse button
+    wordlist_button = ctk.CTkButton(master=left_frame, text="Browse", command=lambda: open_file_browser(wordlist_entry))
+    wordlist_button.pack(padx=10, pady=(1,10))
+    
+    # Start button
+    start_button = ctk.CTkButton(
+        master=left_frame, 
+        text="Start", 
+        fg_color="darkgreen", 
+        hover_color="green",
+        command=lambda: threading.Thread(
+            target=lambda: startSubDomainFinder(domain_entry.get(), wordlist_entry.get()), 
+            daemon=True
+        ).start()
+    )
+    start_button.pack(padx=10, pady=(30,5))
+    
+    # Textbox for found domains
+    global found_domains_textbox
+    found_domains_textbox = ctk.CTkTextbox(master=middle_frame)
+    found_domains_textbox.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.94, relheight=0.94)
+
+    # Set status label at the bottom or somewhere appropriate to indicate idle status initially
+    status_label.configure(text="Status: Idle", fg_color="grey")
+
     
 def action_port_scanner():
     print("port scanner")
@@ -185,8 +284,111 @@ def action_reverse_shell():
     
     
 def action_custom_wordlist():
-    print("custom wordlist")
+    clear_body()
+        
+        
+    #TODO: this function needs to be in each "module", needs to find a better way.    
+    def save_to_file():
+        result = found_domains_textbox.get("1.0", tk.END)
+        with open("custom_wordlist.txt", "a+") as f:
+            f.seek(0)
+            content = f.read()
+            if result not in content:
+                try:
+                    f.write(str(result))
+                except:
+                    f.write("Error writing custom wordlist to file.")
+            else:
+                messagebox.showerror("ERROR","Custom wordlist is already in the file!")    
+    #################################################################################
+    
+    # Configure the rows and columns
+    app.grid_rowconfigure(0, weight=0)
+    app.grid_rowconfigure(1, weight=1)
+    app.grid_rowconfigure(2, weight=0)  
+    app.grid_columnconfigure(0, weight=1)
+    app.grid_columnconfigure(1, weight=3)
+    app.grid_columnconfigure(2, weight=0)
+    
+    # Create left frame
+    left_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    left_frame.grid(row=1, column=0, padx=(10, 5), pady=10, sticky='nsew')
+    
+    # Create middle frame
+    middle_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    middle_frame.grid(row=1, column=1, padx=(5, 5), pady=10, sticky='nsew')
+    
+    
+    # right frame // can delete to create bigger text/result box
+    right_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    right_frame.grid(row=1, column=2, padx=(5, 10), pady=10, sticky='nsew')
+    
+    # output name label
+    output_name = ctk.CTkLabel(master=right_frame, text="Output filename:")
+    output_name.pack(padx=10, pady=(10, 0))
+    # output name entryfield
+    output_entry = ctk.CTkEntry(master=right_frame, width=150)
+    output_entry.pack(padx=10, pady=10)
 
+    
+    add_to_summary_button = ctk.CTkButton(
+        master=right_frame, 
+        text="Save to File", 
+        fg_color="grey", 
+        hover_color="lightgrey", 
+        command=save_to_file
+    )
+    add_to_summary_button.pack(padx=10, pady=20)
+    
+    
+    
+    example_label = ctk.CTkLabel(master=left_frame, text="Seperate With Commas", font=("Helvetica", 15), text_color="lightblue")
+    example_label.pack(padx=10, pady=(10, 5))
+    
+    # Words label
+    words = ctk.CTkLabel(master=left_frame, text="Words: ")
+    words.pack(padx=10, pady=(10, 0))
+    # words entryfield
+    words_entry = ctk.CTkEntry(master=left_frame, width=250)
+    words_entry.pack(padx=0, pady=5)
+    
+    # numbers label
+    wordlist_label = ctk.CTkLabel(master=left_frame, text="Numbers:")
+    wordlist_label.pack(padx=10, pady=(10, 0))
+    # numbers entryfield
+    numbers_entry = ctk.CTkEntry(master=left_frame, width=250)
+    numbers_entry.pack(padx=10, pady=10)
+    
+    
+    # special characters label
+    special_chars = ctk.CTkLabel(master=left_frame, text="Special Characters:")
+    special_chars.pack(padx=10, pady=(10, 0))
+    # special characters entryfield
+    special_chars_entry = ctk.CTkEntry(master=left_frame, width=250)
+    special_chars_entry.pack(padx=10, pady=10)
+    
+    
+    generated_words_textbox = ctk.CTkTextbox(master=middle_frame)
+    generated_words_textbox.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.94, relheight=0.94)
+
+    # Generate button
+    generate_button = ctk.CTkButton(master=left_frame, text="Generate Wordlist", command=lambda: start_generate_wordlist(words_entry.get(), numbers_entry.get(), special_chars_entry.get(), output_entry.get()))
+    generate_button.pack(padx=10, pady=(30,5))
+
+    def start_generate_wordlist(gen_words, gen_numbers, gen_special_chars, filename):
+        gen_words = gen_words.split(',')
+        gen_numbers = gen_numbers.split(',')
+        gen_special_chars = gen_special_chars.split(',')
+        filename = filename.strip() if filename else "custom_wordlist.txt"
+        generated_words = CustomWordlist.generate_wordlist(gen_words, gen_numbers, gen_special_chars, filename)
+        
+        # print words to textbox
+        for word in generated_words:
+            generated_words_textbox.insert(tk.END, word + "\n")
+        
+        messagebox.showinfo("Success", f"Wordlist saved as {filename}")
+
+# TODO - add function to calculate how many words will be generated
 
 def action_file_server():
     print("file server")
@@ -319,6 +521,7 @@ def action_hash_cracker():
 
 def action_backdoor():
     print("backdoor")
+    
     
 def action_retrieve_documents():
     print("retrieve documents")

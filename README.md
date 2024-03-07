@@ -41,8 +41,8 @@ IntrusionKit is a penetration testing toolkit based on Lockheed Martins Cyber Ki
 ```
 |—— exploitation
 |    |—— hashCracker.py
-|    |—— __pycache__
-|        |—— hashCracker.cpython-311.pyc
+|—— reconnaissance
+|    |—— subDirectoryFinder.py
 |—— Images
 |    |—— Actions.png
 |    |—— Delivery.png
@@ -56,13 +56,6 @@ IntrusionKit is a penetration testing toolkit based on Lockheed Martins Cyber Ki
 |    |—— subdir_preview.png
 |    |—— summary_preview.png
 |    |—— Weaponization.png
-|—— menu.py
-|—— reconnaissance
-|    |—— subDirectoryFinder.py
-|    |—— __pycache__
-|        |—— subDirectoryFinder.cpython-311.pyc
-|—— requirements.txt
-|—— Summary.txt
 |—— wordlists
 |    |—— hash cracker wordlists
 |        |—— hashes.txt
@@ -70,6 +63,9 @@ IntrusionKit is a penetration testing toolkit based on Lockheed Martins Cyber Ki
 |    |—— sub directory wordlists
 |        |—— Common_Sub_Dirs.txt
 |        |—— dir_wordlist.txt
+|—— menu.py
+|—— requirements.txt
+|—— Summary.txt
 ```
 
 

@@ -2,6 +2,9 @@ import aiohttp
 import asyncio
 import urllib.parse
 
+
+
+
 # max 50 tasks at the same time
 semaphore = asyncio.Semaphore(50)
 
