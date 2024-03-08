@@ -388,7 +388,7 @@ def action_reverse_shell():
     
 def action_custom_wordlist():
     clear_body()
-        
+    # TODO - add function to calculate how many words will be generated
         
     #TODO: this function needs to be in each "module", needs to find a better way.    
     def save_to_file():
@@ -491,7 +491,6 @@ def action_custom_wordlist():
         
         messagebox.showinfo("Success", f"Wordlist saved as {filename}")
 
-# TODO - add function to calculate how many words will be generated
 
 def action_file_server():
     print("file server")
@@ -503,27 +502,33 @@ def action_hash_cracker():
     ########################### hash cracker functions #############################
     
     # function to start the hash cracker
+    def insert_cracked_hash_callback(hash, cracked_password):
+        # Safe update to GUI from thread
+        cracked_textbox.after(0, lambda: cracked_textbox.insert(tk.END, f"{hash}: {cracked_password}\n"))
+
     def insert_cracked_hash():
         if hash_file_entry.get() == "" or wordlist_entry.get() == "":
-            messagebox.showerror("ERROR","Missing hash file or wordlist path!")
+            messagebox.showerror("ERROR", "Missing hash file or wordlist path!")
             return
         
-        # clear textbox
         cracked_textbox.delete("1.0", "end")
-        
-        # start hash cracker
-        HashCracker.startHashCracker(wordlist_entry.get().lower(), hash_file_entry.get().lower(), hash_type_var.get().lower())
-        
-        while True:
-            hash, cracked_password = HashCracker.cracked_queue.get()
-            if hash == "DONE":
-                print("Finished cracking hashes")
-                # set status to idle
-                status_label.configure(text="Status: Inactive ", fg_color="grey")
-                break
-            cracked_textbox.insert(tk.END, f"{hash}:{cracked_password}\n")
+
+
+        def run_async_cracker():
+            asyncio.run(HashCracker.startHashCracker(
+                wordlist_entry.get().lower(),
+                hash_file_entry.get().lower(),
+                hash_type_var.get().lower(),
+                insert_cracked_hash_callback,
+                on_crack_complete
+            ))
+
+        update_scanner_status(True)
+        threading.Thread(target=run_async_cracker, daemon=True).start()
                 
-        
+        def on_crack_complete():
+            app.after(0, lambda: update_scanner_status(False))
+            
     # function to add cracked hashes to summary
     def add_to_summary():
         result = cracked_textbox.get("1.0", tk.END)
