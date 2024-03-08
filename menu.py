@@ -5,6 +5,7 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 import threading
 import asyncio
+import os
 
 
 # custom imports
@@ -13,6 +14,7 @@ import reconnaissance.subDirectoryFinder as SubDirFinder
 import reconnaissance.subDomainFinder as SubDomainFinder
 import reconnaissance.portScanner as PortScanner
 import weaponization.custom_wordlist as CustomWordlist
+import payload_delivery.fileServer as FileServer
 
 
 app = ctk.CTk()
@@ -379,9 +381,7 @@ def action_port_scanner():
     scan_button = ctk.CTkButton(master=left_frame, text="Start Scanning", command=lambda: start_port_scanner())
     scan_button.pack(padx=15, pady=(30,5))
 
-
-    
-    
+  
 def action_reverse_shell():
     print("reverse shell")
     
@@ -493,7 +493,83 @@ def action_custom_wordlist():
 
 
 def action_file_server():
-    print("file server")
+    clear_body()
+
+#################################################################################################################
+
+    def make_ascii_tree(path, prefix=''):
+        tree_str = f"{prefix}+-- {os.path.basename(path)}/\n"
+        prefix += "|   "
+        try:
+            # List directory contents
+            contents = [os.path.join(path, d) for d in os.listdir(path)]
+            # Separate directories and files
+            directories = [d for d in contents if os.path.isdir(d)]
+            files = [f for f in contents if os.path.isfile(f)]
+            # Add directories and files to tree
+            for directory in directories:
+                tree_str += make_ascii_tree(directory, prefix)
+            for file in files:
+                tree_str += f"{prefix}+-- {os.path.basename(file)}\n"
+        except PermissionError:
+            tree_str += f"{prefix}+-- [Permission Denied]\n"
+        return tree_str
+
+    def open_directory_browser():
+        folder_selected = filedialog.askdirectory()
+        if folder_selected:
+            directory_entry.set(folder_selected)
+            ascii_tree = make_ascii_tree(folder_selected)
+            fileserver_textbox.delete('1.0', ctk.END)  # Assuming ctk supports this method or use equivalent
+            fileserver_textbox.insert('1.0', ascii_tree)
+
+#################################################################################################################
+
+    # Configure the rows and columns
+    app.grid_rowconfigure(0, weight=0)
+    app.grid_rowconfigure(1, weight=1)
+    app.grid_rowconfigure(2, weight=0)  
+    app.grid_columnconfigure(0, weight=0)
+    app.grid_columnconfigure(1, weight=300)
+
+    # Create left frame for inputs
+    left_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    left_frame.grid(row=1, column=0, padx=(10, 5), pady=10, sticky='nsew')
+
+    # LEFT FRAME CONTENTS
+    directory_label = ctk.CTkLabel(left_frame, text="Directory Path:")
+    directory_label.pack(padx=10, pady=(10,0))
+
+    # Directory
+    directory_entry = ctk.StringVar()
+    directory_entry_widget = ctk.CTkEntry(left_frame, textvariable=directory_entry)
+    directory_entry_widget.pack(padx=10, pady=(0,10))
+    directory_button = ctk.CTkButton(left_frame, text="Browse", command=open_directory_browser)
+    directory_button.pack(padx=10, pady=(0,10))
+
+    # Port
+    port_label = ctk.CTkLabel(left_frame, text="Server Port:")
+    port_label.pack(padx=10, pady=(10,0))
+    port_entry = ctk.CTkEntry(left_frame)
+    port_entry.pack(padx=10, pady=(0,10))
+
+    # Start button
+    start_server_button = ctk.CTkButton(left_frame, text="Start Server", fg_color="darkgreen" , command=lambda: (update_scanner_status(True) , fileserver_textbox.insert(tk.END, f"\n\nAvailable at | http://localhost:{port_entry.get()}") ,FileServer.start_file_server(directory_entry.get(), int(port_entry.get()))))
+    start_server_button.pack(padx=10, pady=(20,5))
+
+    # stop button
+    stop_server_button = ctk.CTkButton(left_frame, text="Stop Server", fg_color="darkred", command=lambda: (update_scanner_status(False) ,FileServer.stop_file_server()))
+    stop_server_button.pack(padx=10, pady=(5,10))
+
+
+    # Create right frame for displaying directory content or other messages
+    right_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    right_frame.grid(row=1, column=1, padx=(5, 10), pady=10, sticky='nsew')
+
+    # tree texbox
+    fileserver_textbox = ctk.CTkTextbox(master=right_frame)
+    fileserver_textbox.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.94, relheight=0.94)
+
 
 
 def action_hash_cracker(): 
