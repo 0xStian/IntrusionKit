@@ -4,19 +4,22 @@ from tkinter import filedialog
 import tkinter as tk
 import tkinter.messagebox as messagebox
 import threading
+import asyncio
 
 
 # custom imports
 import exploitation.hashCracker as HashCracker
 import reconnaissance.subDirectoryFinder as SubDirFinder
 import reconnaissance.subDomainFinder as SubDomainFinder
+import reconnaissance.portScanner as PortScanner
 import weaponization.custom_wordlist as CustomWordlist
+
 
 app = ctk.CTk()
 app.title('IntrusionKit')
-app.geometry('800x500')
+app.geometry('900x500')
 app.iconbitmap("Images\\Icon.ico")
-app.resizable(False, False)
+app.resizable(True, True)
 ############################### THEME #####################################
 
 ctk.set_appearance_mode("dark")
@@ -29,7 +32,6 @@ def open_file_browser(entry_field):
     if filepath:
         entry_field.delete(0, "end")  # Clear the current text
         entry_field.insert(0, filepath)  # Insert the new filepath
-
 
 
 ############################### END #######################################
@@ -100,7 +102,7 @@ def action_sub_directory_finder():
         for currentDomain in domains:
             found_domains_textbox.insert(tk.END, currentDomain + "\n")
         # set status to idle
-        status_label.configure(text="Status: idle ", fg_color="grey")
+        status_label.configure(text="Status: Inactive ", fg_color="grey")
         
         
     #TODO: this function needs to be in each "module", needs to find a better way.    
@@ -190,7 +192,7 @@ def action_sub_domain_finder():
         # run sub domain finder
         SubDomainFinder.start(domain_entry.get(), wordlist_entry.get(), update_gui_with_subdomain)
         # set status to idle
-        status_label.configure(text="Status: Idle ", fg_color="grey")
+        status_label.configure(text="Status: Inactive ", fg_color="grey")
         
     def add_to_summary():
         result = found_domains_textbox.get("1.0", tk.END)
@@ -273,20 +275,44 @@ def action_sub_domain_finder():
     found_domains_textbox.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.94, relheight=0.94)
 
     # Set status label at the bottom or somewhere appropriate to indicate idle status initially
-    status_label.configure(text="Status: Idle", fg_color="grey")
+    status_label.configure(text="Status: Inactive ", fg_color="grey")
 
     
 def action_port_scanner():
     clear_body()
 
     #########################################################
+    def add_to_summary():
+        result = open_ports_textbox.get("1.0", tk.END)
+        with open("Summary.txt", "a+") as f:
+            f.seek(0)
+            content = f.read()
+            if result not in content:
+                try:
+                    f.write(str(result))
+                except:
+                    f.write("Error writing subdomains to summary.")
+            else:
+                messagebox.showerror("ERROR","Subdomains are already in the Summary!") 
+
+    def portScannerCallbacks(callback_message):
+        app.after(0, lambda: open_ports_textbox.insert(tk.END, callback_message + "\n"))
+
     def start_port_scanner():
         ip_address = IPaddress_entry.get()
-        ports = ports_entry.get() if not all_ports_checkbox_var.get() else "All ports"
-        check_vulns = "Checking for vulnerabilities" if scan_for_vulnerability_var.get() else "Not checking for vulnerabilities"
-        print(f"Scanning IP: {ip_address}, Ports: {ports}, {check_vulns}")
+        ports = ports_entry.get().replace(" ", "") if not all_ports_checkbox_var.get() else "all ports"
+        vulnScan = scan_for_vulnerability_var.get() == 1
+        open_ports_textbox.insert(tk.END, f"Started scanning Ports[{ports}] on {ip_address}\n")
+        
+        # Set status to active
+        update_scanner_status(True)
+        
+        def on_scan_complete():
+            # This function will be passed as a callback to be called when scanning is complete
+            app.after(0, lambda: update_scanner_status(False))
 
-
+        # Start the scanning in a new thread
+        threading.Thread(target=lambda: PortScanner.startPortScanner(ip_address, ports, vulnScan, portScannerCallbacks, on_scan_complete), daemon=True).start()
 
     #########################################################
 
@@ -295,9 +321,9 @@ def action_port_scanner():
     app.grid_rowconfigure(0, weight=0)
     app.grid_rowconfigure(1, weight=1)
     app.grid_rowconfigure(2, weight=0)  
-    app.grid_columnconfigure(0, weight=1)
-    app.grid_columnconfigure(1, weight=3)
-    app.grid_columnconfigure(2, weight=0)
+    app.grid_columnconfigure(0, weight=0)
+    app.grid_columnconfigure(1, weight=300, minsize=760)
+    app.grid_columnconfigure(2)
     
     # Create left frame
     left_frame = ctk.CTkFrame(master=app, corner_radius=15)
@@ -306,45 +332,52 @@ def action_port_scanner():
     # Create middle frame
     middle_frame = ctk.CTkFrame(master=app, corner_radius=15)
     middle_frame.grid(row=1, column=1, padx=(5, 5), pady=10, sticky='nsew')
-    
+    # result texbox
+    open_ports_textbox = ctk.CTkTextbox(master=middle_frame)
+    open_ports_textbox.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.94, relheight=0.94)
     
     # right frame // can delete to create bigger text/result box
     right_frame = ctk.CTkFrame(master=app, corner_radius=15)
     right_frame.grid(row=1, column=2, padx=(5, 10), pady=10, sticky='nsew')
+    add_to_summary_button = ctk.CTkButton(
+        master=right_frame, 
+        text="Save\nResult", 
+        fg_color="green", 
+        hover_color="grey", 
+        command=add_to_summary
+    )
+    add_to_summary_button.pack(padx=10, pady=20)
     
     
     # ipaddress label
     IPaddress = ctk.CTkLabel(master=left_frame, text="IP Address:")
     IPaddress.pack(padx=10, pady=(10, 0))
     # ipaddress entryfield
-    IPaddress_entry = ctk.CTkEntry(master=left_frame, width=250)
+    IPaddress_entry = ctk.CTkEntry(master=left_frame, width=130)
     IPaddress_entry.pack(padx=0, pady=5)
     
     # ports label
     ports_label = ctk.CTkLabel(master=left_frame, text="Ports:")
     ports_label.pack(padx=10, pady=(10, 0))
     # ports entryfield
-    ports_entry = ctk.CTkEntry(master=left_frame, width=250)
+    ports_entry = ctk.CTkEntry(master=left_frame, width=130)
     ports_entry.pack(padx=10, pady=10)
     
 
     # Scan all ports checkbox
-    all_ports_checkbox_var = ctk.IntVar()  # Variable to hold the state of the check box
+    all_ports_checkbox_var = ctk.IntVar()
     all_ports_checkbox = ctk.CTkCheckBox(master=left_frame, text="All ports", variable=all_ports_checkbox_var)
     all_ports_checkbox.pack(pady=(10), padx=(20), anchor="w")
 
     # Scan for vulnerabilities checkbox
-    scan_for_vulnerability_var = ctk.IntVar()  # Variable to hold the state of the check box
+    scan_for_vulnerability_var = ctk.IntVar()
     scan_for_vulnerability_checkbox = ctk.CTkCheckBox(master=left_frame, text="Check for Vulns", variable=scan_for_vulnerability_var)
     scan_for_vulnerability_checkbox.pack(padx=(20), anchor="w")
     
-    
-    open_ports_textbox = ctk.CTkTextbox(master=middle_frame)
-    open_ports_textbox.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.94, relheight=0.94)
 
-    # Generate button
+    # start scan button
     scan_button = ctk.CTkButton(master=left_frame, text="Start Scanning", command=lambda: start_port_scanner())
-    scan_button.pack(padx=10, pady=(30,5))
+    scan_button.pack(padx=15, pady=(30,5))
 
 
     
@@ -475,9 +508,6 @@ def action_hash_cracker():
             messagebox.showerror("ERROR","Missing hash file or wordlist path!")
             return
         
-        # set status to active
-        status_label.configure(text="Status: Active", fg_color="green")
-        
         # clear textbox
         cracked_textbox.delete("1.0", "end")
         
@@ -489,7 +519,7 @@ def action_hash_cracker():
             if hash == "DONE":
                 print("Finished cracking hashes")
                 # set status to idle
-                status_label.configure(text="Status: idle  ", fg_color="grey")
+                status_label.configure(text="Status: Inactive ", fg_color="grey")
                 break
             cracked_textbox.insert(tk.END, f"{hash}:{cracked_password}\n")
                 
@@ -514,14 +544,13 @@ def action_hash_cracker():
     
     ##############################################################################
     
-    # configure all rows and columns except for those used by the frames
     app.grid_rowconfigure(0, weight=0)
     app.grid_rowconfigure(1, weight=1)
     app.grid_rowconfigure(2, weight=0)  
     
-    app.grid_columnconfigure(0, weight=100)  # First column 
-    app.grid_columnconfigure(1, weight=900)  # Second column 
-    app.grid_columnconfigure(2, weight=0)  # third column
+    app.grid_columnconfigure(0, weight=100)
+    app.grid_columnconfigure(1, weight=900) 
+    app.grid_columnconfigure(2, weight=0) 
 
     # Create left frame
     left_frame = ctk.CTkFrame(master=app, corner_radius=15)
@@ -630,7 +659,7 @@ logo_label.bind("<Leave>", on_leave)
 
 
 # status label
-status_label = ctk.CTkLabel(master=top_banner, text="Status: idle ", fg_color="grey", text_color="black", corner_radius=10 ,font=("courier", 11))
+status_label = ctk.CTkLabel(master=top_banner, text="Status: Inactive", fg_color="grey", text_color="black", corner_radius=10 ,font=("courier", 11))
 status_label.pack(side=ctk.LEFT, padx=(100,0), pady=5)
 
 
@@ -659,8 +688,8 @@ def build_menu():
     # Position the frames as per the layout using grid
     for i, frame in enumerate(frames):
         frame.grid(row=(i//3)+1, column=i%3, padx=8, pady=8, sticky="nsew")
-        app.grid_columnconfigure(i%3, weight=1)
-        app.grid_rowconfigure((i//3)+1, weight=1)
+        app.grid_columnconfigure(i%3, weight=1, minsize=0)
+        app.grid_rowconfigure((i//3)+1, weight=1, minsize=0)
         
 ############################### END ########################################
 ############################### BUTTONS ####################################
@@ -688,6 +717,13 @@ def build_menu():
 
     
 ############################### END #######################################
+        
+def update_scanner_status(is_active):
+    status = "Status: active" if is_active else "Status: inactive"
+    fg_color = "green" if is_active else "grey"
+    status_label.configure(text=status, fg_color=fg_color)
+
+
 ###############################CLEAR#####################################
 
 def clear_body():
