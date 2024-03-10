@@ -15,6 +15,8 @@ import reconnaissance.subDomainFinder as SubDomainFinder
 import reconnaissance.portScanner as PortScanner
 import weaponization.custom_wordlist as CustomWordlist
 import payload_delivery.fileServer as FileServer
+import weaponization.reverseShell as ReverseShell
+import installation.backdoor as Backdoor
 
 
 app = ctk.CTk()
@@ -34,6 +36,7 @@ def open_file_browser(entry_field):
     if filepath:
         entry_field.delete(0, "end")  # Clear the current text
         entry_field.insert(0, filepath)  # Insert the new filepath
+
 
 
 ############################### END #######################################
@@ -324,7 +327,7 @@ def action_port_scanner():
     app.grid_rowconfigure(1, weight=1)
     app.grid_rowconfigure(2, weight=0)  
     app.grid_columnconfigure(0, weight=0)
-    app.grid_columnconfigure(1, weight=300, minsize=760)
+    app.grid_columnconfigure(1, weight=300, minsize=500)
     app.grid_columnconfigure(2)
     
     # Create left frame
@@ -383,7 +386,91 @@ def action_port_scanner():
 
   
 def action_reverse_shell():
-    print("reverse shell")
+    clear_body()
+        
+    ########################### hash cracker functions #############################
+
+    def open_directory_browser():
+        folder_selected = filedialog.askdirectory()
+        if folder_selected:
+            output_entry.set(folder_selected)
+    
+    def log_output():
+        log_textbox.after(0, lambda: log_textbox.insert(tk.END, f'Reverse Shell Output Location:\n{output_entry.get()}/{"Reverse_Shell"}.exe\n\nIP Address set to: {ipaddress_entry.get()}\nPort: {port_entry.get()}'))
+
+    
+    ##############################################################################
+    
+    app.grid_rowconfigure(0, weight=0)
+    app.grid_rowconfigure(1, weight=1)
+    app.grid_columnconfigure(0, weight=100)
+    app.grid_columnconfigure(1, weight=200) 
+
+
+    # Create left frame
+    left_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    left_frame.grid(row=1, column=0, padx=(10, 5), pady=10, sticky='nsew')
+    
+    # Create middle frame
+    middle_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    middle_frame.grid(row=1, column=1, padx=(5, 5), pady=10, sticky='nsew')  # Stretch to fill grid cell
+
+
+    ### Left frame content ###
+    
+    # IP Address label
+    ipaddress_label = ctk.CTkLabel(master=left_frame, text="Listening IP-Address:")
+    ipaddress_label.pack(padx=10, pady=(10, 0))
+    #IP Address entry field
+    ipaddress_entry = ctk.CTkEntry(master=left_frame)
+    ipaddress_entry.pack(padx=10, pady=0)
+
+    
+    # port label
+    port_label = ctk.CTkLabel(master=left_frame, text="Listening Port:")
+    port_label.pack(padx=10, pady=(10, 0))
+    # port entry field
+    port_entry = ctk.CTkEntry(master=left_frame)
+    port_entry.pack(padx=10, pady=0)
+
+
+    # output label
+    output_label = ctk.CTkLabel(master=left_frame, text="File Output Path:")
+    output_label.pack(padx=10, pady=(10, 0))
+    # output entryfield
+    output_entry = ctk.StringVar()
+    output_entry_widget = ctk.CTkEntry(left_frame, textvariable=output_entry)
+    output_entry_widget.pack(padx=10, pady=(0,10))
+    # output browse button
+    output_button = ctk.CTkButton(master=left_frame, text="Browse", command=lambda: open_directory_browser())
+    output_button.pack(padx=10, pady=(1,10))
+
+    # OS type
+    hash_type_label = ctk.CTkLabel(master=left_frame, text="File Type:")
+    hash_type_label.pack(padx=10, pady=(10, 0))
+    
+    OS_types = ["EXE", "Python Script", "bash script", "powershell script"] #TODO: add more than exe
+    OS_type_var = ctk.StringVar()
+    
+    hash_type_dropdown = ctk.CTkOptionMenu(master=left_frame, variable=OS_type_var, values=OS_types)
+    hash_type_dropdown.pack(padx=10, pady=0)
+    hash_type_dropdown.set("Select...")
+    
+    # Create button
+    start_button = ctk.CTkButton(master=left_frame, text="Create", fg_color="darkgreen", hover_color="green", 
+    command=lambda: (log_output(),update_scanner_status(True), threading.Thread(target=ReverseShell.make_executable(output_entry.get(), ipaddress_entry.get(), port_entry.get(), script_name="Reverse_Shell.py", exe_name="Reverse_Shell"), daemon=True).start())) 
+    start_button.pack(padx=10, pady=(30,5))
+    
+    ######## Right frame content #########
+
+    #textbox for cracked hashes
+    log_textbox = ctk.CTkTextbox(master=middle_frame)
+    log_textbox.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.94, relheight=0.94)
+    
+    #TODO: error handling to check if fields are empty
+    #TODO: add better method to set status active and inactive
+    #TODO: add button to go to interact with reverse shell / backdoor
+    
     
     
 def action_custom_wordlist():
@@ -700,7 +787,71 @@ def action_hash_cracker():
     
 
 def action_backdoor():
-    print("backdoor")
+    clear_body()
+        
+    ########################### shell functions #############################
+    
+    def send_command(command, ipaddress, port):
+        log_textbox.delete("1.0", "end")
+        if port == "" or command == "":
+            messagebox.showerror("ERROR", "Missing port or command!")
+            return
+        response = Backdoor.send_command(command, ipaddress, port)
+        log_textbox.insert(ctk.END, response)
+        
+    
+    ##############################################################################
+    
+    app.grid_rowconfigure(0, weight=0)
+    app.grid_rowconfigure(1, weight=10)
+    app.grid_columnconfigure(0, weight=100)
+    app.grid_columnconfigure(1, weight=200) 
+
+
+    # Create left frame
+    left_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    left_frame.grid(row=1, column=0, padx=(10, 5), pady=10, sticky='nsew')
+    
+    # Create middle frame
+    middle_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    middle_frame.grid(row=1, column=1, padx=(5, 5), pady=10, sticky='nsew')  # Stretch to fill grid cell
+
+
+    ### Left frame content ###
+    
+    # port label
+    port_label = ctk.CTkLabel(master=left_frame, text="Port:")
+    port_label.pack(padx=10, pady=(20, 0))
+    # port entry field
+    port_entry = ctk.CTkEntry(master=left_frame)
+    port_entry.pack(padx=10, pady=(0, 30))
+
+
+    # output label
+    output_label = ctk.CTkLabel(master=left_frame, text="Command:")
+    output_label.pack(padx=10, pady=(10, 0))
+    # output entryfield
+    output_entry = ctk.StringVar()
+    output_entry_widget = ctk.CTkEntry(left_frame, textvariable=output_entry)
+    output_entry_widget.pack(padx=10, pady=(0,10))
+    
+    # send command button
+    start_button = ctk.CTkButton(master=left_frame, text="Send", fg_color="darkgreen", hover_color="green", 
+    command=lambda: send_command(output_entry.get(), "localhost", port_entry.get()))
+    start_button.pack(padx=10, pady=(0,50))
+    
+    #TODO: add connection label to let know if shell is working
+    
+    ######## Right frame content #########
+
+    # output label
+    output_label = ctk.CTkLabel(master=middle_frame, text="Response:")
+    output_label.pack(padx=10, pady=(5, 5))
+
+    #textbox for cracked hashes
+    log_textbox = ctk.CTkTextbox(master=middle_frame)
+    log_textbox.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.94, relheight=0.80)
+
     
     
 def action_retrieve_documents():
