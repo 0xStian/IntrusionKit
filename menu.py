@@ -37,8 +37,6 @@ def open_file_browser(entry_field):
         entry_field.delete(0, "end")  # Clear the current text
         entry_field.insert(0, filepath)  # Insert the new filepath
 
-
-
 ############################### END #######################################
 ############################### BUTTON ACTIONS ############################
           
@@ -852,10 +850,128 @@ def action_backdoor():
     log_textbox = ctk.CTkTextbox(master=middle_frame)
     log_textbox.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.94, relheight=0.80)
 
-    
-    
+      
 def action_retrieve_documents():
-    print("retrieve documents")
+    clear_body()
+        
+    ########################### shell functions #############################
+    
+    def open_directory_browser():
+        folder_selected = filedialog.askdirectory()
+        if folder_selected:
+            output_entry.set(folder_selected)
+
+    def send_file_request():
+        pass
+    
+    ##############################################################################
+    
+    app.grid_rowconfigure(0, weight=0)
+    app.grid_rowconfigure(1, weight=10)
+    app.grid_columnconfigure(0, weight=50)
+    app.grid_columnconfigure(1, weight=50)
+    app.grid_columnconfigure(2, weight=200) 
+
+
+    # Create left frame
+    left_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    left_frame.grid(row=1, column=0, padx=(10, 5), pady=10, sticky='nsew')
+
+    # Create middle frame
+    middle_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    middle_frame.grid(row=1, column=1, padx=(5, 5), pady=10, sticky='nsew')  # Stretch to fill grid cell
+    
+    # Create right frame
+    right_frame = ctk.CTkFrame(master=app, corner_radius=15)
+    right_frame.grid(row=1, column=2, padx=(5, 5), pady=10, sticky='nsew')  # Stretch to fill grid cell
+
+    ###left frame content ###
+
+    # left header label
+    port_label = ctk.CTkLabel(master=left_frame, text="Create client\nexecutable", font=("courier", 16))
+    port_label.pack(padx=10, pady=(5, 10))
+
+
+    # ipaddress label
+    ipaddress_label = ctk.CTkLabel(master=left_frame, text="IP Address:")
+    ipaddress_label.pack(padx=10, pady=(10, 0))
+    # ipaddress entry field
+    ipaddress_entry = ctk.CTkEntry(master=left_frame)
+    ipaddress_entry.pack(padx=10, pady=(0, 10))
+
+    # ipaddress label
+    port_label = ctk.CTkLabel(master=left_frame, text="Port To Listen On:")
+    port_label.pack(padx=10, pady=(10, 0))
+    # ipaddress entry field
+    port_entry = ctk.CTkEntry(master=left_frame)
+    port_entry.pack(padx=10, pady=(0, 10))
+
+
+    # create executable button
+    create_executable_button = ctk.CTkButton(master=left_frame, text="Create Executable", fg_color="darkgreen", hover_color="green", 
+    command=lambda: print("debug"))
+    create_executable_button.pack(padx=10, pady=(0,20))
+
+    ### middle frame content ###
+    
+    # middle header label
+    port_label = ctk.CTkLabel(master=middle_frame, text="Intecract with executable", font=("courier", 16))
+    port_label.pack(padx=10, pady=(5, 0))
+
+    # port label
+    port_label = ctk.CTkLabel(master=middle_frame, text="Connect to Port:")
+    port_label.pack(padx=10, pady=(10, 0))
+    # port entry field
+    port_entry = ctk.CTkEntry(master=middle_frame)
+    port_entry.pack(padx=10, pady=(0, 10))
+
+
+    # output label
+    output_label = ctk.CTkLabel(master=middle_frame, text="Directory to search:")
+    output_label.pack(padx=10, pady=(5, 0))
+    # output entryfield
+    output_entry = ctk.StringVar()
+    output_entry_widget = ctk.CTkEntry(middle_frame, textvariable=output_entry)
+    output_entry_widget.pack(padx=10, pady=(0,5))
+
+    # output label
+    output_label = ctk.CTkLabel(master=middle_frame, text="File Extention ( TXT, PDF, ... ):")
+    output_label.pack(padx=10, pady=(5, 0))
+    # output entryfield
+    output_entry = ctk.StringVar()
+    output_entry_widget = ctk.CTkEntry(middle_frame, textvariable=output_entry)
+    output_entry_widget.pack(padx=10, pady=(0,5))
+    
+
+    # output label
+    output_label = ctk.CTkLabel(master=middle_frame, text="Documents Output Path:")
+    output_label.pack(padx=10, pady=(10, 0))
+    # output entryfield
+    output_entry = ctk.StringVar()
+    output_entry_widget = ctk.CTkEntry(middle_frame, textvariable=output_entry)
+    output_entry_widget.pack(padx=10, pady=(0,5))
+    # output browse button
+    output_button = ctk.CTkButton(master=middle_frame, text="Browse", command=lambda: open_directory_browser())
+    output_button.pack(padx=10, pady=(1,10))
+
+
+    # send command button
+    start_button = ctk.CTkButton(master=middle_frame, text="Search For Files", fg_color="darkgreen", hover_color="green", 
+    command=lambda: send_file_request())
+    start_button.pack(padx=10, pady=(10,0))
+    
+    #TODO: add connection label to let know if shell is working
+    
+    ######## Right frame content #########
+
+    # output label
+    output_label = ctk.CTkLabel(master=right_frame, text="Response:")
+    output_label.pack(padx=10, pady=(0, 5))
+
+    #textbox for cracked hashes
+    log_textbox = ctk.CTkTextbox(master=right_frame)
+    log_textbox.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.94, relheight=0.88)
+
 
 ############################### END #######################################
 ############################### BANNER ####################################

