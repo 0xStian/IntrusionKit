@@ -4,11 +4,14 @@ import json
 
 def list_files(directory, file_type):
     try:
-        files = [f for f in os.listdir(directory) if f.endswith(file_type)]
+        if file_type:  # Check if file_type is not an empty string
+            files = [f for f in os.listdir(directory) if f.endswith(file_type)]
+        else:
+            files = os.listdir(directory)  # List all files if no file_type is provided
         return json.dumps(files)
     except Exception as e:
         return json.dumps({'error': str(e)})
-
+    
 def send_file(conn, file_path):
     try:
         with open(file_path, 'rb') as f:
@@ -20,7 +23,7 @@ def send_file(conn, file_path):
 
 def handle_client(conn):
     while True:
-        command = conn.recv(1024).decode()
+        command = conn.recv(4096).decode()
         if not command:
             break
         command = json.loads(command)
@@ -32,10 +35,10 @@ def handle_client(conn):
             elif action == 'download':
                 send_file(conn, command.get('file_path'))
                 break
-
+            
 def main():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('localhost', 12345))
+        s.bind(('localhost', 8001))
         s.listen()
         print("Server listening...")
         while True:
@@ -43,6 +46,4 @@ def main():
             with conn:
                 print(f"Connected by {addr}")
                 handle_client(conn)
-
-if __name__ == "__main__":
-    main()
+main()

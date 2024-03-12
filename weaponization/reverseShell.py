@@ -25,8 +25,6 @@ while True:
     except:
         output = b" [!] Invalid Command"
     socket.sendto(output, address)
-
-    
     '''
 
     with open(script_name, "w") as file:
