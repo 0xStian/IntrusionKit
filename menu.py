@@ -17,6 +17,7 @@ import weaponization.custom_wordlist as CustomWordlist
 import payload_delivery.fileServer as FileServer
 import weaponization.reverseShell as ReverseShell
 import installation.backdoor as Backdoor
+import actions_on_system.retrieveFiles as retrieveFiles
 
 
 app = ctk.CTk()
@@ -862,7 +863,7 @@ def action_retrieve_documents():
             output_entry.set(folder_selected)
 
     def send_file_request():
-        pass
+        retrieveFiles.retrieve_documents(directory_entry.get(), extention_entry.get())
     
     ##############################################################################
     
@@ -926,21 +927,21 @@ def action_retrieve_documents():
     port_entry.pack(padx=10, pady=(0, 10))
 
 
-    # output label
-    output_label = ctk.CTkLabel(master=middle_frame, text="Directory to search:")
-    output_label.pack(padx=10, pady=(5, 0))
-    # output entryfield
-    output_entry = ctk.StringVar()
-    output_entry_widget = ctk.CTkEntry(middle_frame, textvariable=output_entry)
-    output_entry_widget.pack(padx=10, pady=(0,5))
+    # directory label
+    directory_label = ctk.CTkLabel(master=middle_frame, text="Directory to search:")
+    directory_label.pack(padx=10, pady=(5, 0))
+    # directory entryfield
+    directory_entry = ctk.StringVar()
+    directory_entry_widget = ctk.CTkEntry(middle_frame, textvariable=directory_entry)
+    directory_entry_widget.pack(padx=10, pady=(0,5))
 
-    # output label
-    output_label = ctk.CTkLabel(master=middle_frame, text="File Extention ( TXT, PDF, ... ):")
-    output_label.pack(padx=10, pady=(5, 0))
-    # output entryfield
-    output_entry = ctk.StringVar()
-    output_entry_widget = ctk.CTkEntry(middle_frame, textvariable=output_entry)
-    output_entry_widget.pack(padx=10, pady=(0,5))
+    # extention label
+    extention_label = ctk.CTkLabel(master=middle_frame, text="File Extention ( TXT, PDF, ... ):")
+    extention_label.pack(padx=10, pady=(5, 0))
+    # extention entryfield
+    extention_entry = ctk.StringVar()
+    extention_entry_widget = ctk.CTkEntry(middle_frame, textvariable=extention_entry)
+    extention_entry_widget.pack(padx=10, pady=(0,5))
     
 
     # output label
@@ -962,6 +963,7 @@ def action_retrieve_documents():
     
     #TODO: add connection label to let know if shell is working
     
+
     ######## Right frame content #########
 
     # output label

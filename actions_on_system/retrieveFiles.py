@@ -40,9 +40,8 @@ def request_file(directory, file_name, files):
     else:
         print("File not found in the listed files. Please enter a file name from the list.")
 
-if __name__ == "__main__":
-    directory = input("Enter directory path: ")
-    file_type = input("Enter file type (e.g., .txt): ")
+def retrieve_documents(directory, file_type):
+    print (directory, file_type)
     files = list_files(directory, file_type)
 
     if files:
