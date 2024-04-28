@@ -25,10 +25,6 @@ IntrusionKit is a penetration testing toolkit based on Lockheed Martins Cyber Ki
   ```
   pip install -r requirements.txt
   ```
-- aiohttp==3.9.1
-- customtkinter==5.2.1
-- Pillow==10.1.0
-- Pillow==10.2.0
 
 
 ## Use
@@ -37,40 +33,8 @@ IntrusionKit is a penetration testing toolkit based on Lockheed Martins Cyber Ki
   ```
 
 
-## Directory Hierarchy
-```
-|—— exploitation
-|    |—— hashCracker.py
-|—— reconnaissance
-|    |—— subDirectoryFinder.py
-|—— Images
-|    |—— Actions.png
-|    |—— Delivery.png
-|    |—— Exploitation.png
-|    |—— hashcracker_preview.png
-|    |—— Icon.ico
-|    |—— Logo.png
-|    |—— Logo_highlighted.png
-|    |—— menu_preview.png
-|    |—— Recon.png
-|    |—— subdir_preview.png
-|    |—— summary_preview.png
-|    |—— Weaponization.png
-|—— wordlists
-|    |—— hash cracker wordlists
-|        |—— hashes.txt
-|        |—— passwordlist.txt
-|    |—— sub directory wordlists
-|        |—— Common_Sub_Dirs.txt
-|        |—— dir_wordlist.txt
-|—— menu.py
-|—— requirements.txt
-|—— Summary.txt
-```
-
-
  ## Information
-- Author:  `Stian Mikkelsen`
+- Author:  `Stian Skjoerestad Mikkelsen`
 
 
 
